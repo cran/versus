@@ -1,10 +1,123 @@
 # Error on input with duplicates
 
     Code
-      compare(mtcars, mtcars, by = c(disp, cyl))
+      compare(with_dupe, without_dupe, by = c(x, y))
     Condition
       Error in `compare()`:
-      ! `table_a` must be unique on `by` vars (`disp`, `cyl`)
+      ! `by` variables must uniquely identify rows
+      i `table_a` has 2 rows with the same `by` values as row 1
+      $ x: -2
+      $ y: -3
+
+---
+
+    Code
+      compare(without_dupe, with_dupe, by = c(x, y))
+    Condition
+      Error in `compare()`:
+      ! `by` variables must uniquely identify rows
+      i `table_b` has 2 rows with the same `by` values as row 1
+      $ x: -2
+      $ y: -3
+
+---
+
+    Code
+      compare(a, b, by = all_of(names(mtcars)))
+    Condition
+      Error in `compare()`:
+      ! `by` variables must uniquely identify rows
+      i `table_b` has 2 rows with the same `by` values as row 2
+      $ mpg: 22.8
+      $ cyl: 4
+      $ disp: 108
+      i 8 more: hp, drat, wt, qsec, vs, am, gear, carb
+
+# Error when `by` columns are incompatible
+
+    Code
+      compare(test_df_a, test_df_b, by = c(car, wt, mpg))
+    Condition
+      Error in `compare()`:
+      ! `by` columns must be compatible
+      `table_a$wt` <numeric>
+      `table_b$wt` <character>
+
+# Error on dupes when there are lots of `by` columns
+
+    Code
+      compare(without_dupe, with_dupe, by = all_of(letters))
+    Condition
+      Error in `compare()`:
+      ! `by` variables must uniquely identify rows
+      i `table_b` has 2 rows with the same `by` values as row 1
+      $ a: 1
+      $ b: 2
+      $ c: 3
+      i 23 more: d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, ...
+
+# Error on dupes when there is a `by` column with a long name
+
+    Code
+      compare(with_dupe, without_dupe, by = 1:6)
+    Condition
+      Error in `compare()`:
+      ! `by` variables must uniquely identify rows
+      i `table_a` has 2 rows with the same `by` values as row 1
+      $ a: 1
+      $ b: 2
+      $ c: 3
+      i 3 more: azbzczdzezfzgzhzizjzkzlzmznzozpzqzrzsztzuzvzwzx...
+
+# Error on dupes when there is a `by` value with a large print width
+
+    Code
+      compare(with_dupe, without_dupe, by = a)
+    Condition
+      Error in `compare()`:
+      ! `by` variables must uniquely identify rows
+      i `table_a` has 2 rows with the same `by` values as row 1
+      $ a: "azbzczdzezfzgzhzizjzkzlzmznzozpzqzrzsztzuzvzwz...
+
+# Error on non data frame input
+
+    Code
+      compare(example_df_a, non_df, by = car)
+    Condition
+      Error in `compare()`:
+      ! `table_b` must be a data frame
+      i class(table_b): <POSIXct/POSIXt>
+
+---
+
+    Code
+      compare(non_df, example_df_b, by = car)
+    Condition
+      Error in `compare()`:
+      ! `table_a` must be a data frame
+      i class(table_a): <POSIXct/POSIXt>
+
+# Error on input with duplicated names
+
+    Code
+      compare(one, two, by = mpg)
+    Condition
+      Error in `compare()`:
+      ! Problem with `table_b`
+      * Names must be unique.
+      x These names are duplicated:
+        * "x" at locations 1 and 2.
+
+---
+
+    Code
+      compare(one, two, by = "mpg")
+    Condition
+      Error in `compare()`:
+      ! Problem with `table_b`
+      * Names must be unique.
+      x These names are duplicated:
+        * "x" at locations 1 and 2.
 
 # Error on empty `by`
 
@@ -31,7 +144,7 @@
       compare(a, b, by = x)
     Condition
       Error in `compare()`:
-      ! Issue with `table_b`
+      ! Problem with `table_b`:
       * Can't subset columns that don't exist.
       x Column `x` doesn't exist.
 
@@ -41,7 +154,8 @@
       compare(a, b, by = c(y = x))
     Condition
       Error in `compare()`:
-      ! Can't rename variables in this context.
+      ! Problem with `by`:
+      * Can't rename variables in this context.
 
 # Error when `by` uses `join_by`
 
@@ -58,8 +172,9 @@
       compare(test_df_a, test_df_b, by = car, coerce = FALSE)
     Condition
       Error in `compare()`:
-      ! coerce = FALSE but some columns classes do not match
-      i wt
+      ! `coerce = FALSE` but some column classes do not match
+      i table_a: wt <numeric>
+      i table_b: wt <character>
 
 # example comparison
 
@@ -68,9 +183,9 @@
     Output
       $tables
       # A tibble: 2 x 4
-        table   expr       ncol  nrow
+        table   expr       nrow  ncol
         <chr>   <chr>     <int> <int>
-      1 table_a test_df_a    13    11
+      1 table_a test_df_a    11    13
       2 table_b test_df_b    12    12
       
       $by
@@ -79,21 +194,21 @@
         <chr>  <chr>     <chr>    
       1 car    character character
       
-      $summ
+      $intersection
       # A tibble: 11 x 5
-         column n_diffs class_a class_b   value_diffs 
-         <chr>    <int> <chr>   <chr>     <list>      
-       1 mpg          2 numeric numeric   <df [2 x 3]>
-       2 cyl          0 numeric numeric   <df [0 x 3]>
-       3 disp         2 numeric numeric   <df [2 x 3]>
-       4 hp           0 numeric numeric   <df [0 x 3]>
-       5 drat         0 numeric numeric   <df [0 x 3]>
-       6 wt           0 numeric character <df [0 x 3]>
-       7 qsec         0 numeric numeric   <df [0 x 3]>
-       8 vs           0 numeric numeric   <df [0 x 3]>
-       9 am           0 numeric numeric   <df [0 x 3]>
-      10 gear         0 numeric numeric   <df [0 x 3]>
-      11 carb         0 numeric numeric   <df [0 x 3]>
+         column n_diffs class_a class_b   value_diffs     
+         <chr>    <int> <chr>   <chr>     <list>          
+       1 mpg          2 numeric numeric   <tibble [2 x 3]>
+       2 cyl          1 numeric numeric   <tibble [1 x 3]>
+       3 disp         2 numeric numeric   <tibble [2 x 3]>
+       4 hp           0 numeric numeric   <tibble [0 x 3]>
+       5 drat         0 numeric numeric   <tibble [0 x 3]>
+       6 wt           0 numeric character <tibble [0 x 3]>
+       7 qsec         0 numeric numeric   <tibble [0 x 3]>
+       8 vs           0 numeric numeric   <tibble [0 x 3]>
+       9 am           0 numeric numeric   <tibble [0 x 3]>
+      10 gear         0 numeric numeric   <tibble [0 x 3]>
+      11 carb         0 numeric numeric   <tibble [0 x 3]>
       
       $unmatched_cols
       # A tibble: 1 x 2
@@ -102,12 +217,14 @@
       1 a     extracol_a
       
       $unmatched_rows
-        table        car
-      1     a  Mazda RX4
-      2     a    extra_a
-      3     b  Merc 280C
-      4     b Merc 450SE
-      5     b    extra_b
+      # A tibble: 5 x 2
+        table car       
+        <chr> <chr>     
+      1 a     Mazda RX4 
+      2 a     extra_a   
+      3 b     Merc 280C 
+      4 b     Merc 450SE
+      5 b     extra_b   
       
 
 ---
@@ -115,11 +232,14 @@
     Code
       value_diffs_all(comp)
     Output
-        column val_a val_b            car
-      1    mpg  14.3  16.3     Duster 360
-      2    mpg  24.4  26.4      Merc 240D
-      3   disp 109.0 108.0     Datsun 710
-      4   disp 259.0 258.0 Hornet 4 Drive
+      # A tibble: 5 x 4
+        column val_a val_b car           
+        <chr>  <dbl> <dbl> <chr>         
+      1 mpg     14.3  16.3 Duster 360    
+      2 mpg     24.4  26.4 Merc 240D     
+      3 cyl      6    NA   Hornet 4 Drive
+      4 disp   109   108   Datsun 710    
+      5 disp   259   258   Hornet 4 Drive
 
 # example comparison with allow_bothNA = FALSE
 
@@ -128,9 +248,9 @@
     Output
       $tables
       # A tibble: 2 x 4
-        table   expr       ncol  nrow
+        table   expr       nrow  ncol
         <chr>   <chr>     <int> <int>
-      1 table_a test_df_a    13    11
+      1 table_a test_df_a    11    13
       2 table_b test_df_b    12    12
       
       $by
@@ -139,21 +259,21 @@
         <chr>  <chr>     <chr>    
       1 car    character character
       
-      $summ
+      $intersection
       # A tibble: 11 x 5
-         column n_diffs class_a class_b   value_diffs 
-         <chr>    <int> <chr>   <chr>     <list>      
-       1 mpg          2 numeric numeric   <df [2 x 3]>
-       2 cyl          1 numeric numeric   <df [1 x 3]>
-       3 disp         2 numeric numeric   <df [2 x 3]>
-       4 hp           0 numeric numeric   <df [0 x 3]>
-       5 drat         0 numeric numeric   <df [0 x 3]>
-       6 wt           0 numeric character <df [0 x 3]>
-       7 qsec         0 numeric numeric   <df [0 x 3]>
-       8 vs           0 numeric numeric   <df [0 x 3]>
-       9 am           0 numeric numeric   <df [0 x 3]>
-      10 gear         0 numeric numeric   <df [0 x 3]>
-      11 carb         0 numeric numeric   <df [0 x 3]>
+         column n_diffs class_a class_b   value_diffs     
+         <chr>    <int> <chr>   <chr>     <list>          
+       1 mpg          2 numeric numeric   <tibble [2 x 3]>
+       2 cyl          1 numeric numeric   <tibble [1 x 3]>
+       3 disp         2 numeric numeric   <tibble [2 x 3]>
+       4 hp           0 numeric numeric   <tibble [0 x 3]>
+       5 drat         0 numeric numeric   <tibble [0 x 3]>
+       6 wt           0 numeric character <tibble [0 x 3]>
+       7 qsec         0 numeric numeric   <tibble [0 x 3]>
+       8 vs           0 numeric numeric   <tibble [0 x 3]>
+       9 am           0 numeric numeric   <tibble [0 x 3]>
+      10 gear         0 numeric numeric   <tibble [0 x 3]>
+      11 carb         0 numeric numeric   <tibble [0 x 3]>
       
       $unmatched_cols
       # A tibble: 1 x 2
@@ -162,12 +282,14 @@
       1 a     extracol_a
       
       $unmatched_rows
-        table        car
-      1     a  Mazda RX4
-      2     a    extra_a
-      3     b  Merc 280C
-      4     b Merc 450SE
-      5     b    extra_b
+      # A tibble: 5 x 2
+        table car       
+        <chr> <chr>     
+      1 a     Mazda RX4 
+      2 a     extra_a   
+      3 b     Merc 280C 
+      4 b     Merc 450SE
+      5 b     extra_b   
       
 
 ---
@@ -175,66 +297,84 @@
     Code
       value_diffs_all(comp)
     Output
-        column val_a val_b            car
-      1    mpg  14.3  16.3     Duster 360
-      2    mpg  24.4  26.4      Merc 240D
-      3    cyl    NA    NA     Datsun 710
-      4   disp 109.0 108.0     Datsun 710
-      5   disp 259.0 258.0 Hornet 4 Drive
-
-# value_diffs with a single column works
-
-    Code
-      value_diffs(comp, mpg)
-    Output
-        mpg_a mpg_b        car
-      1  14.3  16.3 Duster 360
-      2  24.4  26.4  Merc 240D
-
-# value_diffs with multiple columns errors
-
-    Code
-      value_diffs(comp, c(mpg, disp))
-    Condition
-      Error in `value_diffs()`:
-      ! Must select only one column.
-      i Columns selected: mpg, disp
-      i For multiple columns, use `value_diffs_stacked()`
-
-# value_diffs_stacked works
-
-    Code
-      value_diffs_stacked(comp, c(mpg, disp))
-    Output
-        column val_a val_b            car
-      1    mpg  14.3  16.3     Duster 360
-      2    mpg  24.4  26.4      Merc 240D
-      3   disp 109.0 108.0     Datsun 710
-      4   disp 259.0 258.0 Hornet 4 Drive
-
----
-
-    Code
-      value_diffs_stacked(comp, where(is.numeric))
-    Output
-        column val_a val_b            car
-      1    mpg  14.3  16.3     Duster 360
-      2    mpg  24.4  26.4      Merc 240D
-      3   disp 109.0 108.0     Datsun 710
-      4   disp 259.0 258.0 Hornet 4 Drive
-
-# value_diffs_all coerces to char on incompatible ptypes
-
-    Code
-      as_tibble(value_diffs_all(comp))
-    Message
-      i values converted to character
-    Output
-      # A tibble: 4 x 4
+      # A tibble: 5 x 4
         column val_a val_b car           
-        <chr>  <chr> <chr> <chr>         
-      1 mpg    14.3  16.3  Duster 360    
-      2 mpg    24.4  26.4  Merc 240D     
-      3 disp   109   108   Datsun 710    
-      4 disp   259   258   Hornet 4 Drive
+        <chr>  <dbl> <dbl> <chr>         
+      1 mpg     14.3  16.3 Duster 360    
+      2 mpg     24.4  26.4 Merc 240D     
+      3 cyl     NA    NA   Datsun 710    
+      4 disp   109   108   Datsun 710    
+      5 disp   259   258   Hornet 4 Drive
+
+# compare() works when the tables only have one column
+
+    Code
+      compare(a, b, by = car)
+    Output
+      $tables
+      # A tibble: 2 x 4
+        table   expr   nrow  ncol
+        <chr>   <chr> <int> <int>
+      1 table_a a         4     1
+      2 table_b b         4     1
+      
+      $by
+      # A tibble: 1 x 3
+        column class_a class_b
+        <chr>  <chr>   <chr>  
+      1 car    integer integer
+      
+      $intersection
+      # A tibble: 0 x 5
+      # i 5 variables: column <chr>, n_diffs <int>, class_a <chr>, class_b <chr>,
+      #   value_diffs <list>
+      
+      $unmatched_cols
+      # A tibble: 0 x 2
+      # i 2 variables: table <chr>, column <chr>
+      
+      $unmatched_rows
+      # A tibble: 2 x 2
+        table   car
+        <chr> <int>
+      1 a         1
+      2 b         5
+      
+
+# compare() works when no rows are common
+
+    Code
+      compare(a, b, by = car)
+    Output
+      $tables
+      # A tibble: 2 x 4
+        table   expr   nrow  ncol
+        <chr>   <chr> <int> <int>
+      1 table_a a         2     1
+      2 table_b b         2     1
+      
+      $by
+      # A tibble: 1 x 3
+        column class_a class_b
+        <chr>  <chr>   <chr>  
+      1 car    integer integer
+      
+      $intersection
+      # A tibble: 0 x 5
+      # i 5 variables: column <chr>, n_diffs <int>, class_a <chr>, class_b <chr>,
+      #   value_diffs <list>
+      
+      $unmatched_cols
+      # A tibble: 0 x 2
+      # i 2 variables: table <chr>, column <chr>
+      
+      $unmatched_rows
+      # A tibble: 4 x 2
+        table   car
+        <chr> <int>
+      1 a         1
+      2 a         2
+      3 b         5
+      4 b         6
+      
 

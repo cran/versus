@@ -6,27 +6,24 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/eutwt/versus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/eutwt/versus/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/versus)](https://CRAN.R-project.org/package=versus)
+[![Codecov test
+coverage](https://codecov.io/gh/eutwt/versus/branch/main/graph/badge.svg)](https://app.codecov.io/gh/eutwt/versus?branch=main)
 <!-- badges: end -->
 
 ## Overview
 
-versus is designed to help explore the differences between two data
+A toolset for interactively exploring the differences between two data
 frames.
 
 ## Installation
 
 ``` r
 install.packages("versus")
-```
 
-### Development version
-
-To get a bug fix or to use a feature from the development version, you
-can install the development version of dplyr from GitHub.
-
-``` r
-# install.packages("pak")
-pak::pak("eutwt/versus")
+# Or install the development version from GitHub with
+# pak::pak("eutwt/versus")
 ```
 
 ## Example
@@ -64,7 +61,8 @@ example_df_b
 
 Use `compare()` to see
 
-- The number of differing values in each column - `compare()$summ`
+- The number of differing values in each column -
+  `compare()$intersection`
 - Which columns are in only one table - `compare()$unmatched_cols`
 - Which rows are in only one table - `compare()$unmatched_rows`
 
@@ -73,10 +71,10 @@ comp <- compare(example_df_a, example_df_b, by = car)
 comp
 #> $tables
 #> # A tibble: 2 × 4
-#>   table   expr          ncol  nrow
+#>   table   expr          nrow  ncol
 #>   <chr>   <chr>        <int> <int>
 #> 1 table_a example_df_a     9     9
-#> 2 table_b example_df_b     9    10
+#> 2 table_b example_df_b    10     9
 #> 
 #> $by
 #> # A tibble: 1 × 3
@@ -84,17 +82,17 @@ comp
 #>   <chr>  <chr>     <chr>    
 #> 1 car    character character
 #> 
-#> $summ
+#> $intersection
 #> # A tibble: 7 × 5
-#>   column n_diffs class_a class_b value_diffs 
-#>   <chr>    <int> <chr>   <chr>   <list>      
-#> 1 mpg          2 numeric numeric <df [2 × 3]>
-#> 2 cyl          0 integer integer <df [0 × 3]>
-#> 3 disp         2 numeric numeric <df [2 × 3]>
-#> 4 hp           0 integer integer <df [0 × 3]>
-#> 5 drat         0 numeric numeric <df [0 × 3]>
-#> 6 wt           0 numeric numeric <df [0 × 3]>
-#> 7 vs           0 integer integer <df [0 × 3]>
+#>   column n_diffs class_a class_b value_diffs     
+#>   <chr>    <int> <chr>   <chr>   <list>          
+#> 1 mpg          2 numeric numeric <tibble [2 × 3]>
+#> 2 cyl          0 integer integer <tibble [0 × 3]>
+#> 3 disp         2 numeric numeric <tibble [2 × 3]>
+#> 4 hp           0 integer integer <tibble [0 × 3]>
+#> 5 drat         0 numeric numeric <tibble [0 × 3]>
+#> 6 wt           0 numeric numeric <tibble [0 × 3]>
+#> 7 vs           0 integer integer <tibble [0 × 3]>
 #> 
 #> $unmatched_cols
 #> # A tibble: 2 × 2
@@ -104,23 +102,42 @@ comp
 #> 2 b     carb  
 #> 
 #> $unmatched_rows
-#>   table        car
-#> 1     a  Mazda RX4
-#> 2     b  Merc 280C
-#> 3     b Merc 450SE
+#> # A tibble: 3 × 2
+#>   table car       
+#>   <chr> <chr>     
+#> 1 a     Mazda RX4 
+#> 2 b     Merc 280C 
+#> 3 b     Merc 450SE
+```
+
+Use `summary()` to see what kind of differences were found
+
+``` r
+summary(comp)
+#> # A tibble: 4 × 2
+#>   difference     found
+#>   <chr>          <lgl>
+#> 1 value_diffs    TRUE 
+#> 2 unmatched_cols TRUE 
+#> 3 unmatched_rows TRUE 
+#> 4 class_diffs    FALSE
 ```
 
 Use `value_diffs()` to see the values that are different.
 
 ``` r
 value_diffs(comp, disp)
-#>   disp_a disp_b            car
-#> 1    109    108     Datsun 710
+#> # A tibble: 2 × 3
+#>   disp_a disp_b car           
+#>    <dbl>  <dbl> <chr>         
+#> 1    109    108 Datsun 710    
 #> 2    259    258 Hornet 4 Drive
 value_diffs(comp, mpg)
-#>   mpg_a mpg_b        car
+#> # A tibble: 2 × 3
+#>   mpg_a mpg_b car       
+#>   <dbl> <dbl> <chr>     
 #> 1  14.3  16.3 Duster 360
-#> 2  24.4  26.4  Merc 240D
+#> 2  24.4  26.4 Merc 240D
 ```
 
 Use `value_diffs_all()` to combine all `value_diffs()` output into one
@@ -128,9 +145,11 @@ table
 
 ``` r
 value_diffs_all(comp)
-#>   column val_a val_b            car
-#> 1    mpg  14.3  16.3     Duster 360
-#> 2    mpg  24.4  26.4      Merc 240D
-#> 3   disp 109.0 108.0     Datsun 710
-#> 4   disp 259.0 258.0 Hornet 4 Drive
+#> # A tibble: 4 × 4
+#>   column val_a val_b car           
+#>   <chr>  <dbl> <dbl> <chr>         
+#> 1 mpg     14.3  16.3 Duster 360    
+#> 2 mpg     24.4  26.4 Merc 240D     
+#> 3 disp   109   108   Datsun 710    
+#> 4 disp   259   258   Hornet 4 Drive
 ```

@@ -4,14 +4,7 @@
 \alias{compare}
 \title{Compare two data frames}
 \usage{
-compare(
-  table_a,
-  table_b,
-  by,
-  allow_both_NA = TRUE,
-  coerce = TRUE,
-  use_duckplyr = FALSE
-)
+compare(table_a, table_b, by, allow_both_NA = TRUE, coerce = TRUE)
 }
 \arguments{
 \item{table_a}{A data frame}
@@ -24,11 +17,8 @@ compare(
 \item{allow_both_NA}{Logical. If \code{TRUE} a missing value in both data frames is
 considered as equal}
 
-\item{coerce}{Logical. If \code{FALSE} only columns with the same class are compared.}
-
-\item{use_duckplyr}{Logical. Run \code{as_duckplyr_df()} on input tables before
-performing comparison. This is useful when the tables are large because it makes
-the comparison faster. If TRUE, the outputs will also be duckplyr_df objects.}
+\item{coerce}{Logical. If \code{FALSE} and columns from the input tables have
+differing classes, the function throws an error.}
 }
 \value{
 \describe{
@@ -42,7 +32,7 @@ and columns in each.
 A data frame with one row per \code{by} column showing the class
 of the column in each of the input tables.
 }
-\item{summ}{
+\item{intersection}{
 A data frame with one row per column common to \code{table_a} and
 \code{table_b} and columns "n_diffs" showing the number of values which
 are different between the two tables, "class_a"/"class_b" the class of the
