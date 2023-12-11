@@ -1,6 +1,6 @@
 Package: versus
 Title: Compare Data Frames
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: 
     person("Ryan", "Dickerson", , "fresh.tent5866@fastmail.com", role = c("aut", "cre", "cph"))
 Description: A toolset for interactively exploring the differences between two data frames.
@@ -17,8 +17,8 @@ BugReports: https://github.com/eutwt/versus/issues
 Depends: R (>= 4.1.0)
 LazyData: true
 NeedsCompilation: no
-Packaged: 2023-12-10 17:50:21 UTC; mbp
+Packaged: 2023-12-11 00:54:06 UTC; mbp
 Author: Ryan Dickerson [aut, cre, cph]
 Maintainer: Ryan Dickerson <fresh.tent5866@fastmail.com>
 Repository: CRAN
-Date/Publication: 2023-12-10 18:00:02 UTC
+Date/Publication: 2023-12-11 08:00:02 UTC

@@ -1,3 +1,7 @@
+# versus 0.2.1
+
+* Patch to avoid error when input is data.table
+
 # versus 0.2.0
 
 * A new function `slice_diffs_both()` is added, used to get the differences from

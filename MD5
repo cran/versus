@@ -1,8 +1,8 @@
-1f534bcf05c76ae8111e9f6fba771a6a *DESCRIPTION
+5b802b6f14414f85d4c9d98a3e1ea3a7 *DESCRIPTION
 9dfe3ebce348a62d4e120939ad1cbec9 *LICENSE
 82ecc5515ada292e8479e579eddf7c57 *NAMESPACE
-fdb410b6f1c2720ab632a568df82ad19 *NEWS.md
-90bf2632521fa3cb29ee824b7eeb5f03 *R/compare.R
+b86ef743aba1de9e2adc6de155492ed6 *NEWS.md
+30e575728dde5badfd3574f68e5288a3 *R/compare.R
 fdad2606949582969418969e72e49b7e *R/data.R
 f90eaaec139871b161e9a84d4aa2ba24 *R/example-data.R
 7f79b95783a851b332c5c61077aac89a *R/helpers-by.R
@@ -28,7 +28,7 @@ ea5789661edc44ddf8f03159e54a3197 *man/rmd/overview.Rmd
 ddea5fcda78f6329fdd10060a0b08ed8 *tests/testthat/_snaps/compare.md
 cd9c9285ba700d15fb08f6aeb7082cb4 *tests/testthat/_snaps/slice.md
 90882e61bb7d247ab963dedf171e66ae *tests/testthat/_snaps/value-diffs.md
-e7be6fd033b34886cab34d1150ee8d6f *tests/testthat/test-compare.R
+86360fffd114a70ed87c81f184dd8285 *tests/testthat/test-compare.R
 a1f364c00c00ab050dd966cbe7b01a07 *tests/testthat/test-helpers.R
 cee470d03157df75a50c1ac25e291c5c *tests/testthat/test-slice.R
 ac5814aa5971d9004c9526d84b3359b5 *tests/testthat/test-value-diffs.R
