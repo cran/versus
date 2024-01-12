@@ -126,29 +126,72 @@ test_that("Error on different classes with coerce = FALSE", {
 test_that("example comparison", {
   comp <- compare(test_df_a, test_df_b, by = car)
   expect_snapshot(comp)
-  expect_snapshot(value_diffs_all(comp))
 })
 
-test_that("example comparison with allow_bothNA = FALSE", {
-  comp <- compare(test_df_a, test_df_b, by = car, allow_both_NA = FALSE)
-  expect_snapshot(comp)
-  expect_snapshot(value_diffs_all(comp))
+test_that("allow_bothNA works", {
+  comp <- compare(
+    tibble(x = 1, y = NA),
+    tibble(x = 1, y = NA),
+    by = x,
+    allow_both_NA = FALSE
+  )
+  expect_equal(1, filter(comp$intersection, column == "y")$n_diffs)
+
+  comp <- compare(
+    tibble(x = 1, y = 1),
+    tibble(x = 1, y = NA),
+    by = x,
+    allow_both_NA = FALSE
+  )
+  expect_equal(1, filter(comp$intersection, column == "y")$n_diffs)
+
+  comp <- compare(
+    tibble(x = 1, y = NA),
+    tibble(x = 1, y = NA),
+    by = x,
+    allow_both_NA = TRUE
+  )
+  expect_equal(0, filter(comp$intersection, column == "y")$n_diffs)
+
+  comp <- compare(
+    tibble(x = 1, y = 1),
+    tibble(x = 1, y = NA),
+    by = x,
+    allow_both_NA = FALSE
+  )
+  expect_equal(1, filter(comp$intersection, column == "y")$n_diffs)
 })
 
 test_that("compare() works when table arguemnts aren't symbols", {
-  comp <- compare(test_df_a %>% mutate(x = 1), test_df_b, by = car, allow_both_NA = FALSE)
+  comp <- compare(test_df_a %>% mutate(x = 1), test_df_b, by = car)
   expect_equal(comp$tables$expr[1], "test_df_a %>% mutate(x = 1)")
 })
 
-test_that("compare() works when the tables only have one column", {
-  a <- tibble(car = 1:4)
-  b <- tibble(car = 2:5)
+test_that("compare() works when no rows are common", {
+  a <- tibble(car = 1:2, x = 1)
+  b <- tibble(car = 5:6, x = 2)
   expect_snapshot(compare(a, b, by = car))
 })
 
-test_that("compare() works when no rows are common", {
+test_that("compare() works when no columns are common", {
+  # tables have only one column
+  a <- tibble(car = 1:4)
+  b <- tibble(car = 2:5)
+  expect_snapshot(compare(a, b, by = car))
+  # tables have more than one column
+  a <- tibble(car = 1:4, a = 1)
+  b <- tibble(car = 2:5, b = 2)
+  expect_snapshot(compare(a, b, by = car))
+})
+
+test_that("compare() works when no rows or columns are common", {
+  # tables have only one column
   a <- tibble(car = 1:2)
   b <- tibble(car = 5:6)
+  expect_snapshot(compare(a, b, by = car))
+  # tables have more than one column
+  a <- tibble(car = 1:2, a = 1)
+  b <- tibble(car = 5:6, b = 2)
   expect_snapshot(compare(a, b, by = car))
 })
 
@@ -162,7 +205,10 @@ test_that("compare() works when inputs are data tables", {
   })
   df_comp <- compare(example_df_a, example_df_b, by = car)
 
-  expect_identical(dt_comp, df_comp)
+  expect_identical(
+    dt_comp[setdiff(names(dt_comp), "input")],
+    df_comp[setdiff(names(dt_comp), "input")]
+  )
 })
 
 test_that("summary() works", {
@@ -174,4 +220,24 @@ test_that("summary() works", {
       found = c(TRUE, TRUE, TRUE, FALSE)
     )
   )
+})
+
+test_that("versus.copy_data_table option works", {
+  dt <- data.table::data.table(x = 1)
+  comp <- compare(dt, dt, by = x)
+  expect_identical(comp$input$value$a, dt)
+  comp <- with_options(compare(dt, dt, by = x), versus.copy_data_table = TRUE)
+  expect_identical(comp$input$value$a, as_tibble(copy(dt)))
+})
+
+test_that("locate_matches() handles unmatched rows correctly", {
+  # all common
+  expect_snapshot(locate_matches(tibble(x = 1), tibble(x = 1), by = 'x'))
+  # all different
+  expect_snapshot(locate_matches(tibble(x = 1), tibble(x = 2), by = 'x'))
+  # some different in each table
+  expect_snapshot(locate_matches(tibble(x = 1:2), tibble(x = 2:3), by = 'x'))
+  # some different in only one table
+  expect_snapshot(locate_matches(tibble(x = 1:2), tibble(x = 2), by = 'x'))
+  expect_snapshot(locate_matches(tibble(x = 2), tibble(x = 1:2), by = 'x'))
 })
